@@ -83,7 +83,7 @@ func (u *UserController) CreateAccount(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
-	var existingUser models.User
+	existingUser := models.User{}
 	if err := u.DB.Where("email = ?", input.Email).
 		First(&existingUser).Error; err == nil {
 
@@ -136,4 +136,30 @@ func (u *UserController) Delete(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{"Message": "Deleted Successfully"})
+}
+
+func (u *UserController) GetEmployee(c *gin.Context) {
+
+	users := []models.User{}
+
+	result := u.DB.Select("id,name,email").Where("role = ?", "Employee").Find(&users)
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
+		})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{
+			"message": "Data Employee not found",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": users,
+	})
+
 }

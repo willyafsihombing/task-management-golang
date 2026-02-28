@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"tusk/config"
 	"tusk/controllers"
+	"tusk/middleware"
 	"tusk/models"
 
 	"github.com/gin-gonic/gin"
@@ -34,7 +35,13 @@ func main() {
 
 	router.POST("/users/login", userController.Login)
 	router.POST("/users", userController.CreateAccount)
-	router.DELETE("/users/:id", userController.Delete)
+
+	auth := router.Group("/api")
+	auth.Use(middleware.JWTAuthMiddleware())
+	{
+		auth.DELETE("/users/:id", userController.Delete)
+		auth.GET("/users/employee", userController.GetEmployee)
+	}
 
 	router.Static("/attachment", "./attachment")
 	router.Run("192.168.158.28:8080")
